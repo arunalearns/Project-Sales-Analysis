@@ -1,1 +1,54 @@
+1.To find the total transactions by store type 
+  select storetype, sum(transactionamount) from SalesData
+  group by storetype;
+ 
+2. To find out highest payment methods in both storetypes 
+with cte as (
+select storetype,paymentmethod,count(paymentmethod) as total_payment_method ,
+dense_rank() over(partition by storetype order by count(paymentmethod) desc) rn
+from SalesData
+group by storetype,paymentmethod
+)
+select a.storetype,string_agg(a.paymentmethod,',') from (
+select  storetype ,paymentmethod,total_payment_method from cte where rn=1
+  ) a
+group by a.storetype;
+
+ 
+
+3.Highest revenue generated in which city under storetype category
+
+with cte as (
+select city,storetype,sum(transactionamount) as total,
+dense_rank() over(partition by storetype order by sum(transactionamount) desc) rank_1
+from SalesData
+group by city,storetype
+  )
+select city,storetype from cte where rank_1=1;
+
+ 
+
+4. Product with highest sale.
+With cte as (
+SELECT productname,sum(transactionamount) as total ,
+rank() over (order by sum(transactionamount) desc) rank
+from SalesData
+group by productname
+  )
+ select productname from cte where rank=1;
+
+ 
+
+5. To find the AOV(Average order value)
+
+select (sum(transactionamount) /count(transactionamount)) as Average_order_value from SalesData
+;
+ 
+
+
+Key highlights: (Based on 20 records for sample)
+	Cash and debit were used as highest payment methods for both storetype.
+	Lucknow and Jaipur were the cities with highest revenue with respective storetype
+	Laptop was the highest sold product.
+	Average order value is 19k.
 
